@@ -10,8 +10,10 @@
 #include<stddef.h>
 #define MAX_READ_SIZE 65536
 #define MAX_WRITE_SIZE 65536
+#define MAX_FNAME 170
+#define MAX_FILE_NAME (MAX_FNAME + 10)
 long file_size;
-int file_count, op, process_count;
+int file_count, op, process_count, fname_count;
 enum ops {
     CREAT = 0,
     READ = 1,
@@ -234,8 +236,12 @@ void * process_entries(void *name) {
 
 void create_files(char *path) {
     int i = 0;
-    char *name = "file";
-    int len = strlen(path) + 10 + 1;
+    int c = 'f';
+    char name[MAX_FILE_NAME];
+    memset(name, c, fname_count - 1);
+    name[fname_count - 1] = '\0';
+
+    int len = strlen(path) + MAX_FILE_NAME;
     char *buf = malloc(len);
     if (!buf) {
         printf("malloc failed %s %d\n", path, len);
@@ -264,13 +270,18 @@ int main(int argc, char *argv[]) {
     char *path = argv[2];
     switch (op) {
         case CREAT:
-            if (argc != 5) {
+            if (argc != 6) {
                 printf("Usage for create prog 0 <path> <size of file>"
-                        " <no. of files>\n");
+                        " <no. of files> <name_count\n");
                 exit(1);
             }
             file_size = atol(argv[3]);
             file_count = atoi(argv[4]);
+            fname_count = atoi(argv[5]);
+            if (fname_count > MAX_FNAME) {
+                printf("File name count should not exceed %d\n", MAX_FNAME);
+                goto out;
+            }
             create_files(path);
             goto out;
             break;
